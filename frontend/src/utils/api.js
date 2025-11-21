@@ -1,26 +1,22 @@
 import axios from "axios";
 
+// Tự động chọn API base URL theo môi trường
 export const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  import.meta.env.MODE === "development" ? "http://localhost:5000" : "";
 
 const api = axios.create({
   baseURL: `${API_BASE}/api`,
   headers: { "Content-Type": "application/json" },
-  withCredentials: true,
+  withCredentials: true, // QUAN TRỌNG: Gửi cookie
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// KHÔNG CẦN interceptor request vì backend dùng cookie, không dùng Bearer token
+// Xóa phần localStorage token
 
 api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
       const publicPaths = ["/", "/login", "/register"];
       if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = "/login";
@@ -48,7 +44,6 @@ export const hotelAPI = {
   update: (id, data) => api.put(`/hotels/${id}`, data),
   delete: (id) => api.delete(`/hotels/${id}`),
 
-  // uploads
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("image", file);
@@ -56,7 +51,7 @@ export const hotelAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-  uploadImages: (files /* FileList|File[] */) => {
+  uploadImages: (files) => {
     const fd = new FormData();
     [...files].forEach((f) => fd.append("images", f));
     return api.post("/hotels/upload-images", fd, {
@@ -69,11 +64,7 @@ export const hotelAPI = {
 export const authAPI = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
-  logout: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    return Promise.resolve();
-  },
+  logout: () => api.post("/auth/logout"), // Gọi backend để xóa cookie
   getCurrentUser: () => api.get("/auth/me"),
   updateProfile: (userData) => api.put("/auth/profile", userData),
   changePassword: (pwdData) => api.post("/auth/change-password", pwdData),
@@ -89,7 +80,6 @@ export const roomAPI = {
   update: (id, data) => api.put(`/rooms/${id}`, data),
   delete: (id) => api.delete(`/rooms/${id}`),
 
-  // uploads (để dùng cho ảnh bìa & album)
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("image", file);
@@ -137,15 +127,6 @@ export const helpers = {
     Math.ceil(
       Math.abs(new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
     ),
-  isAuthenticated: () => !!localStorage.getItem("token"),
-  getUser: () => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
-  },
-  isAdmin: () => helpers.getUser()?.role === "admin",
 };
 
 export default api;

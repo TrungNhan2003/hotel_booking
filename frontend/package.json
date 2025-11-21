@@ -20,6 +20,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "hotel_booking": "file:..",
     "lucide-react": "^0.554.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -29,7 +30,9 @@
     "recharts": "^3.4.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "tod0x": "file:..",
+    "todox": "file:.."
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

@@ -1,18 +1,25 @@
+// ==============================
+//   LOAD ENVIRONMENT
+// ==============================
 require("dotenv").config();
 
+// ==============================
+//   IMPORTS (COMMONJS)
+// ==============================
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const path = require("path");
-const mongoose = require("mongoose"); // <<-- thêm
+const mongoose = require("mongoose");
+
 const app = express();
 
-// Nếu chạy sau Nginx/Render/Heroku...
+// Nếu deploy sau Nginx / Render / Heroku
 app.set("trust proxy", 1);
 
-/* =======================
-   ====== CORS SETUP ======
-   ======================= */
+// ==============================
+//   CORS SETUP
+// ==============================
 const ENV_ORIGINS = (
   process.env.FRONTEND_URLS ||
   process.env.FRONTEND_URL ||
@@ -34,7 +41,7 @@ const ALLOWED_ORIGINS = [...new Set([...ENV_ORIGINS, ...FALLBACK_ORIGINS])];
 app.use(
   cors({
     origin(origin, cb) {
-      if (!origin) return cb(null, true); // Postman/cURL
+      if (!origin) return cb(null, true); // Postman, mobile app
       if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
       return cb(new Error(`Not allowed by CORS: ${origin}`));
     },
@@ -58,16 +65,16 @@ app.use((req, res, next) => {
   next();
 });
 
-/* =======================
-   ====== BODY PARSER =====
-   ======================= */
+// ==============================
+//   BODY PARSER
+// ==============================
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(cookieParser());
 
-/* ===========================
-   ====== STATIC UPLOADS ======
-   =========================== */
+// ==============================
+//   STATIC: UPLOADS
+// ==============================
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
@@ -76,9 +83,9 @@ app.use(
   })
 );
 
-/* =======================
-   ====== ROUTES =========
-   ======================= */
+// ==============================
+//   ROUTES
+// ==============================
 const authRoutes = require("./routes/auth");
 const hotelRoutes = require("./routes/hotels");
 const roomRoutes = require("./routes/rooms");
@@ -91,35 +98,51 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ====== health check ======
+// health check
 app.get("/api/health", (_req, res) => res.json({ status: "OK" }));
 
-// ====== error handler ======
+// ==============================
+//   SERVE FRONTEND (PRODUCTION)
+// ==============================
+if (process.env.NODE_ENV === "production") {
+  console.log("🚀 Serving frontend from ../frontend/dist");
+
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  });
+}
+
+// ==============================
+//   ERROR HANDLER
+// ==============================
 app.use((err, _req, res, _next) => {
-  console.error(err.stack);
+  console.error("🔥 Server error:", err.stack);
   res.status(500).json({ message: "Có lỗi xảy ra trên server" });
 });
 
-// ====== 404 ======
+// ==============================
+//   404 HANDLER
+// ==============================
 app.use((_req, res) =>
   res.status(404).json({ message: "Route không tồn tại" })
 );
 
-/* ===========================
-   ====== START SERVER ========
-   =========================== */
+// ==============================
+//   START SERVER
+// ==============================
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGODB_URI;
 
 async function startServer() {
   try {
-    // === Kết nối MongoDB ===
     await mongoose.connect(MONGO_URI);
-    console.log("✅ MongoDB Atlas connected");
+    console.log("✅ MongoDB connected");
 
-    // === Bắt đầu chạy server ===
     const publicUrl =
       process.env.BACKEND_PUBLIC_URL || `http://localhost:${PORT}`;
+
     app.listen(PORT, () => {
       console.log(`🚀 Server started at ${publicUrl}`);
       console.log("🌐 Allowed origins:", ALLOWED_ORIGINS.join(", "));
