@@ -6,3 +6,5 @@ mongo:
   database: "hotel_info"    # The name of your MongoDB database
   authSource: "admin"       # Optional: If you're using authentication, specify the auth source (default is 'admin')
   useUnifiedTopology: true  # Optional: For newer versions of MongoDB, use unified topology (recommended)
+
+
