@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       setRecentBookings(recent.data.data);
     } catch (error) {
       console.error("Load dashboard error:", error);
-      alert("Không thể tải dữ liệu dashboard");
+      alert("Không thể tải dữ liệu dashboard"+ error.message);
     } finally {
       setLoading(false);
     }

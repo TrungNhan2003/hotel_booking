@@ -8,7 +8,6 @@ const User = require("../models/User");
 // ================= COOKIE HELPER ==================
 function setAuthCookie(res, token, remember = false) {
   const isProd = process.env.NODE_ENV === "production";
-
   const options = {
     httpOnly: true,
     secure: isProd,

@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Tự động chọn API base URL theo môi trường
 export const API_BASE =
-  import.meta.env.MODE === "development" ? "http://localhost:5000" : "";
+    import.meta.env.MODE === "development" ? "http://localhost:5000" : "";
 
 const api = axios.create({
   baseURL: `${API_BASE}/api`,
