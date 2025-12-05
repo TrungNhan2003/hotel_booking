@@ -3,7 +3,7 @@ import requests
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-def createAMongodbConnection():
+def createAMongodbConnection() -> MongoClient:
     connectionString = f"mongodb+srv://{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWD']}@cluster0.qsa9hsq.mongodb.net/?appName=Cluster0"
     client = MongoClient(connectionString, server_api=ServerApi('1')) ## Establish the connection
     try:
@@ -28,7 +28,7 @@ def getTheCurrentAvailableIds() -> list:
     return location_ids
 
 
-def updateCurrentAvailableHotels(locationIDs: list):
+def updateCurrentAvailableHotels(locationIDs: list) -> None:
     mongodbConnection = createAMongodbConnection()
     for id_ in locationIDs:
         url = f'https://api.content.tripadvisor.com/api/v1/location/{id_}/details?language=en&currency=USD&key={os.environ['TRIPADVISORAPI_KEY']}'

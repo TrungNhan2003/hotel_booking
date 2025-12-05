@@ -4,7 +4,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 
-def createAMongodbConnection():
+def createAMongodbConnection() -> MongoClient:
     connectionString = f"mongodb+srv://{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWD']}@cluster0.qsa9hsq.mongodb.net/?appName=Cluster0"
     client = MongoClient(connectionString, server_api=ServerApi('1')) ## Establish the connection
     try:
@@ -26,11 +26,20 @@ def getTheCurrentAvailableIds() -> list:
     ]
     mongodbConnection.close() # Close the connection
     return location_ids
-def ingestCurrentAvailableHotelsPhoto(locationIDs: list):
-    mongodbConnection = createAMongodbConnection()
-    url =  f'https://api.content.tripadvisor.com/api/v1/location/thisIsMyId/photos?language=en&key={os.environ['TRIPADVISORAPI_KEY']}'
-    for id_ in locationIDs:
-        data = requests.get(url).json()
-        print(f"Getting from locationID {id_} successfully ") # Using for logging feature
-        writeToCollection = mongodbConnection["hotel_info"]['currentAvailableHotelsPhoto']
+def ingestCurrentAvailableHotelsPhoto(locationIDs: list) -> None:
+    mongodbConnection = createAMongodbConnection() #mongoDB connection
+    writeToCollection = mongodbConnection["hotel_info"]['currentAvailableHotelsPhoto']
+    for id_ in locationIDs: # Create request based on Each location_id and offset limit = 3
+        for offsetNumber in range(0,4):
+            url = f'https://api.content.tripadvisor.com/api/v1/location/{id_}/photos?language=en&limit=5&offset={offsetNumber}&key={os.environ["TRIPADVISORAPI_KEY"]}'
+            documentData = requests.get(url).json()
+            print(id_)
+            print(type(documentData))
+            print(documentData)
+            print("data type inside the list element:" + type(documentData["data"]))
+            print(documentData)
+            print(f"Getting from locationID {id_} successfully, with the offset number: {offsetNumber}") # Using for logging feature
+        w
+
+ingestCurrentAvailableHotelsPhoto(getTheCurrentAvailableIds())
 
